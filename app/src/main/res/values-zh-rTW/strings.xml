@@ -1269,6 +1269,12 @@
     <string name="spotify_library_subtitle">你的 Spotify 播放列表</string>
     <string name="spotify_sign_in">使用 Spotify 登入</string>
     <string name="spotify_track_unavailable">在 YouTube Music 上找不到該歌曲</string>
+    <string name="artist_signatures">藝人簽名</string>
+    <string name="artist_signatures_subtitle">當 Apple Music 沒有標題標誌時顯示手寫簽名</string>
+    <string name="artist_signatures_url">簽名 API URL</string>
+    <string name="artist_signatures_url_hint">https://signatures.example.com</string>
+    <string name="artist_signatures_unconfigured">未設定 — 輕觸以設定 API URL</string>
+    <string name="artist_signatures_test_failed">無法透過該 URL 連線至 API</string>
     <string name="search_source_addons">外掛</string>
     <string name="search_addons_none">尚未啟用任何外掛。請在「設定 → 來源」中新增。</string>
     <string name="app_icon">應用程式圖示</string>
@@ -1324,4 +1330,5 @@
     <string name="wear_os_code_hint">配對碼</string>
     <string name="wear_os_done">完成</string>
     <string name="spotify_use_spdc_token">使用 sp_dc 權杖</string>
+    <string name="signed_by">由 %1$s 簽名</string>
 </resources>
