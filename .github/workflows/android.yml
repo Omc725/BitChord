@@ -8,12 +8,6 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
-    inputs:
-      create_release:
-        description: 'Publish as a GitHub Release (if tag or release requested)'
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -25,6 +19,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -46,9 +42,21 @@ jobs:
           printf "storeFile=bitchord-release.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n" \
             "${{ secrets.KEYSTORE_PASSWORD }}" "${{ secrets.KEY_ALIAS }}" "${{ secrets.KEY_PASSWORD }}" > keystore.properties
         else
-          echo "No KEYSTORE_BASE64 secret found; generating self-signed keystore for fork build..."
-          keytool -genkey -v -keystore bitchord-release.jks -alias bitchord -keyalg RSA -keysize 2048 -validity 10000 -storepass bitchord -keypass bitchord -dname "CN=BitChord, OU=BitChord, O=BitChord, L=Unknown, S=Unknown, C=US"
-          printf "storeFile=bitchord-release.jks\nstorePassword=bitchord\nkeyAlias=bitchord\nkeyPassword=bitchord\n" > keystore.properties
+          echo "Generating a randomized standalone signing keystore..."
+          RAND_PASS=$(openssl rand -hex 16)
+          RAND_ALIAS="bitchord_$(openssl rand -hex 6)"
+          RAND_DNAME="CN=$RAND_ALIAS, OU=$(openssl rand -hex 4), O=BitChord, L=Unknown, ST=Unknown, C=US"
+          keytool -genkey -v \
+            -keystore bitchord-release.jks \
+            -alias "$RAND_ALIAS" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass "$RAND_PASS" \
+            -keypass "$RAND_PASS" \
+            -dname "$RAND_DNAME"
+          printf "storeFile=bitchord-release.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n" \
+            "$RAND_PASS" "$RAND_ALIAS" "$RAND_PASS" > keystore.properties
         fi
 
     - name: Grant execute permission for gradlew
@@ -57,16 +65,34 @@ jobs:
     - name: Build Signed Prod Release APK
       run: ./gradlew assembleProdRelease
 
+    - name: Prepare Release Assets
+      run: |
+        mkdir -p release-assets
+        for apk in app/build/outputs/apk/prod/release/*.apk; do
+          [ -f "$apk" ] || continue
+          fname=$(basename "$apk")
+          if [[ "$fname" == *"-universal-"* ]]; then
+            cp "$apk" release-assets/BitChord-universal.apk
+          elif [[ "$fname" == *"-arm64-v8a-"* ]]; then
+            cp "$apk" release-assets/BitChord-arm64-v8a.apk
+          elif [[ "$fname" == *"-armeabi-v7a-"* ]]; then
+            cp "$apk" release-assets/BitChord-armeabi-v7a.apk
+          elif [[ "$fname" == *"-x86_64-"* ]]; then
+            cp "$apk" release-assets/BitChord-x86_64.apk
+          else
+            cp "$apk" release-assets/"$fname"
+          fi
+        done
+        echo "=== Prepared Release Assets ==="
+        ls -lh release-assets/
+
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: bitchord-prod-release-signed
-        path: app/build/outputs/apk/prod/release/*.apk
+        name: bitchord-apks
+        path: release-assets/*.apk
         if-no-files-found: error
 
-    # Built by the same assembleProdRelease, with the same key. The watch app
-    # only pairs with a phone app signed by the same key, so a prod watch APK
-    # for these phone builds can only come from here, never a local build.
     - name: Upload Wear OS APK Artifact
       uses: actions/upload-artifact@v4
       if: always()
@@ -75,15 +101,27 @@ jobs:
         path: wearos/build/outputs/apk/prod/release/*.apk
         if-no-files-found: ignore
 
-    - name: Publish Release for Tags
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Publish to GitHub Releases
       uses: softprops/action-gh-release@v2
       with:
-        name: BitChord ${{ github.ref_name }}
-        tag_name: ${{ github.ref_name }}
+        tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
+        name: ${{ startsWith(github.ref, 'refs/tags/') && format('BitChord {0}', github.ref_name) || 'BitChord Latest Release' }}
+        body: |
+          ### 📱 BitChord Release APK Paketleri
+          
+          Bu sürüm GitHub Actions tarafından otomatik olarak derlenmiş, R8 ile sıkıştırılmış ve imzalanmıştır:
+          - **BitChord-arm64-v8a.apk**: Modern Android telefonların büyük çoğunluğu için önerilen paket (düşük dosya boyutu).
+          - **BitChord-universal.apk**: Tüm işlemci mimarilerini (ARMv7, ARM64, x86_64) içeren evrensel paket.
+          - **BitChord-armeabi-v7a.apk**: Eski 32-bit ARM cihazlar için paket.
+          - **BitChord-x86_64.apk**: Emülatör ve x86_64 cihazlar için paket.
+          
+          **Yenilikler / Düzeltmeler:**
+          - 🎵 **24-bit FLAC Desteği:** FFmpeg kod çözücüsü entegrasyonu ile 24-bit FLAC dosyaları artık 16-bit'e kırpılmadan tam çözünürlükte çalınır.
+          - ⚡ **R8 Minify & Shrink Resources:** Kod ve kullanılmayan kaynaklar temizlenip sıkıştırılmıştır.
+          - 🔑 **İmzalı:** Rastgele oluşturulmuş imza sertifikası ile imzalanmıştır, doğrudan cihaza yüklenebilir.
         draft: false
         prerelease: false
-        generate_release_notes: true
-        files: app/build/outputs/apk/prod/release/*.apk
+        make_latest: true
+        files: release-assets/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
