@@ -1326,4 +1326,8 @@
     <string name="wear_os_code_hint">Código de vinculación</string>
     <string name="wear_os_done">Hecho</string>
     <string name="signed_by">Firmado por %1$s</string>
+    <string name="save_as_playlist">Save as playlist</string>
+    <string name="save_queue_as_playlist">Save queue as playlist</string>
+    <string name="save_radio_as_playlist">Save radio as playlist</string>
+    <string name="playlist_created">Playlist created: %1$s</string>
 </resources>

@@ -1331,4 +1331,8 @@
     <string name="wear_os_done">完成</string>
     <string name="spotify_use_spdc_token">使用 sp_dc 權杖</string>
     <string name="signed_by">由 %1$s 簽名</string>
+    <string name="save_as_playlist">Save as playlist</string>
+    <string name="save_queue_as_playlist">Save queue as playlist</string>
+    <string name="save_radio_as_playlist">Save radio as playlist</string>
+    <string name="playlist_created">Playlist created: %1$s</string>
 </resources>

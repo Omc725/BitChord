@@ -1332,4 +1332,8 @@
     <string name="wear_os_code_hint">ペア設定コード</string>
     <string name="wear_os_done">完了</string>
     <string name="signed_by">%1$s のサイン</string>
+    <string name="save_as_playlist">Save as playlist</string>
+    <string name="save_queue_as_playlist">Save queue as playlist</string>
+    <string name="save_radio_as_playlist">Save radio as playlist</string>
+    <string name="playlist_created">Playlist created: %1$s</string>
 </resources>

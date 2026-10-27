@@ -1271,4 +1271,8 @@
     <string name="wear_os_code_hint">Mã ghép nối</string>
     <string name="wear_os_done">Xong</string>
     <string name="signed_by">Được ký bởi %1$s</string>
+    <string name="save_as_playlist">Save as playlist</string>
+    <string name="save_queue_as_playlist">Save queue as playlist</string>
+    <string name="save_radio_as_playlist">Save radio as playlist</string>
+    <string name="playlist_created">Playlist created: %1$s</string>
 </resources>

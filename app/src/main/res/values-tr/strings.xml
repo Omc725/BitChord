@@ -1311,4 +1311,8 @@
     <string name="wear_os_code_hint">Eşleme kodu</string>
     <string name="wear_os_done">Bitti</string>
     <string name="signed_by">%1$s tarafından imzalandı</string>
+    <string name="save_as_playlist">Çalma listesi olarak kaydet</string>
+    <string name="save_queue_as_playlist">Sırayı çalma listesi olarak kaydet</string>
+    <string name="save_radio_as_playlist">Radyoyu çalma listesi olarak kaydet</string>
+    <string name="playlist_created">Çalma listesi oluşturuldu: %1$s</string>
 </resources>
